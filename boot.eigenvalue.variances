@@ -1,0 +1,32 @@
+
+## I wrote this script to calculate the strength of phenotypic integration as the relative eigenvalue variance
+## it corresponds to the method in Pavlicev et al, Measuring morphological integration using eigenvalue variance, 2009, Evol Biol.
+#this script uses the posterior VCV matrices of a MCMCglmm object, but can easily be adjusted for generic VCV matrices
+## it was used for Blankers et al. Phenotypic variation and covariation indicate high evolvability of acoustic communication in crickets, 2016, J. Evol. Biol.
+#x is the posterior (random effect) VCV matrix of a MCMCglmm object
+#n is the number of variables in the model
+
+#mysample takes a random sample of size 1000
+mysample <- function(x) { sample(x, size=1000, replace=TRUE) }
+
+#eval.var calculates the relative eigenvalue variance of the mode of 1000 samples from the posterior distribution of the correlation matrix
+eval.var <- function(x,n) {
+var(eigen(matrix(posterior.mode(apply(posterior.cor(x[,1:n^2]), 2, FUN=mysample)), ncol=n))$values)/(n-1)
+}
+
+#eval.var.boot bootstraps this method nboot times
+eval.var.boot <- function(x,n,nboot) {
+eval.var<-NULL
+boot.eval.vars<-NULL
+summary.eval.vars<-NULL
+  for(i in seq(1:nboot)) {
+eval.var[i]<-var(eigen(matrix(posterior.mode(apply(posterior.cor(x[,1:n^2]), 2, FUN=mysample)), ncol=n))$values)/(n-1)
+  }
+  for(i in seq(1:nboot)) {
+boot.eval.vars<-cbind(boot.eval.vars,eval.var[i])
+  }
+summary.eval.vars$mean<-mean(boot.eval.vars)
+summary.eval.vars$upper<-quantile(boot.eval.vars, prob=0.95)
+summary.eval.vars$lower<-quantile(boot.eval.vars, prob=0.05)
+as.matrix(summary.eval.vars)
+}
