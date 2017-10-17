@@ -3,6 +3,7 @@
 ## lynch_walsh_detect approximates the smallest effect size one can detect in a QTL experiment given the F2 sample size based on Lynch & Walsh, 1998
 ## otto_jones_detect approximates the smalles effect size one can detect (threshold theta) based on equation 11 in Otto & Jones, 2000, Detecting the undetected: estimating the total number of loci underlying a quantitative trait, Genetics 156.
 ## otto_jones_trueQTLnumber calculates the expected true number of loci underlying a trait given the approximated theta, the minimum and average effect size, the parental difference delta z, and the number of detected QTL. Note that these values can be both standardized (delta Z = 0.5, and minimum effect = a/parental_difference) and on the observed scale (latter is preferred)
+## otto_jones_ci estimates the confidence limits around otto_jones_trueQTLnumber
 ## I recommend trying the examples in Example 11 in Chapeter 15 of Lynch and Walsh to get a feel for the first two functions and the example in Table 5 in the Otto & Jones paper to get a feel for how the latter two functions work.
 
 lynch_walsh_sample<-function(effect.size=0.5, alpha=0.05, beta=0.1, k=0) {
@@ -34,7 +35,7 @@ lynch_walsh_detect<-function(sample.size=100, alpha=0.05, beta=0.1, k=0,res=0.00
 
 
 
-otto_detect<-function(amin=0.03,M=0.09,nd=7, res=4) {
+otto_jones_detect<-function(amin=0.03,M=0.09,nd=7, res=4) {
 #theta = detectability threshold	
 #D = sum of additive effects across all possible QTL, ie half the parental difference on the original scale (in which case amin should also be on the scale of the measured variable) or standardized ( in which case, always 0.5)
 #amin = minimum effect size that was detected in a QTL experiment
@@ -51,8 +52,27 @@ equation11=function(theta){amin-theta-((M-theta)/nd)+((amin*exp((-1*amin*nd)/(M-
 	return(theta)
 	}
 	
-otto_trueQTLnumber<-function(D=0.83,amin=0.03,M=0.09,nd=7, res=4) {
+otto_jones_trueQTLnumber<-function(D=0.83,amin=0.03,M=0.09,nd=7, res=4) {
 	nqtl=D/(M-otto_detect(amin,M,nd,res))
 	return(nqtl)
 	}
-	
+
+otto_jones_ci<-function(D= 0.8381, M= 0.0872,nd= 7, alpha= 0.05, amin= 0.0335, res= 4, res2=2, max.loci=100) {
+#alpha = significance level, type 1 error
+#res = resolution of the detectability threshold and true loic estimation (3 < res < 6 should be relatively quickly and accurate)
+#res2 = resolution of the approximation of the solution for equation 9 in Otto & Jones; high values make this particularly slow, try res2=2 or res2=3)
+	theta=otto_jones_detect(amin=amin,M=M,nd=nd,res=res)
+	n=otto_jones_trueQTLnumber(D=D,amin=amin,M=M,nd=nd, res=res)
+	X=qchisq(1-alpha, df=1)
+	equation9<-function(n){((-1)*nd) + (((M-theta)*n*nd)/D) - (nd*log(((M-theta)*n)/D)) - (X/2)}
+	n_vec<-data.frame(number=1, solution=equation9(1), sign=sign(equation9(i)))
+	for( i in seq(from=1+1*10^(-1*res2), to=max.loci, by=1*10^(-1*res2))) {
+		n_vec<-rbind(n_vec,data.frame(number=i, solution=equation9(i), sign=sign(equation9(i))))
+		}
+	plus.to.minus <- which(diff(n_vec$sign)<0)
+	minus.to.plus <- which(diff(n_vec$sign)>0)
+	solutions=c(mean(n_vec[plus.to.minus:plus.to.minus+1,"number"]),mean(n_vec[minus.to.plus:minus.to.plus+1,"number"]))
+	result<-list()
+	result$theta<-theta; result$trueQTLnumber=n; result$lowerCI=solutions[1]; result$upperCI=solutions[2]
+	return(result)
+	}
