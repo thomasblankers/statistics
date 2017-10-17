@@ -1,15 +1,15 @@
-## these are function to analyze the power to detect QTL and to estimate the true number of loci in QTL mapping studies using intercross data
+## these are functions to analyze the power to detect QTL and to estimate the true number of loci in QTL mapping studies using intercross data
 ## lynch_walsh_sample calculates the minimum F2 sample size needed to detect a QTL of a given effect size under different type 1 and type 2 errors (equation 15.37, Lynch & Wlash, 1998, Genetics and Analysis of Quantitative Traits)
 ## lynch_walsh_detect approximates the smallest effect size one can detect in a QTL experiment given the F2 sample size based on Lynch & Walsh, 1998
 ## otto_jones_detect approximates the smalles effect size one can detect (threshold theta) based on equation 11 in Otto & Jones, 2000, Detecting the undetected: estimating the total number of loci underlying a quantitative trait, Genetics 156.
 ## otto_jones_trueQTLnumber calculates the expected true number of loci underlying a trait given the approximated theta, the minimum and average effect size, the parental difference delta z, and the number of detected QTL. Note that these values can be both standardized (delta Z = 0.5, and minimum effect = a/parental_difference) and on the observed scale (latter is preferred)
-## otto_jones_ci estimates the confidence limits around otto_jones_trueQTLnumber
-## I recommend trying the examples in Example 11 in Chapeter 15 of Lynch and Walsh to get a feel for the first two functions and the example in Table 5 in the Otto & Jones paper to get a feel for how the latter two functions work.
+## otto_jones_ci approximates the confidence limits around otto_jones_trueQTLnumber
+## I recommend trying the examples in Example 11 in Chapter 15 of Lynch and Walsh 1998 to get a feel for the first two functions and the examples in Table 5 in the Otto & Jones paper to get a feel for how the latter two functions work.
 
 lynch_walsh_sample<-function(effect.size=0.5, alpha=0.05, beta=0.1, k=0) {
 #effect.size = expected effect size of QTL
 # alpha = type I error, false positive rate
-# beta = typ II error, 1-expected power to detect a QTL
+# beta = type II error, 1-expected power to detect a QTL
 # k = dominant/recessive effect; 0 means fully additive, positive implies dominance effects, negative recessive effects
  
 	 prob.beta=qnorm(1-beta, mean = 0, sd = 1, log = FALSE)
@@ -69,10 +69,12 @@ otto_jones_ci<-function(D= 0.8381, M= 0.0872,nd= 7, alpha= 0.05, amin= 0.0335, r
 	for( i in seq(from=1+1*10^(-1*res2), to=max.loci, by=1*10^(-1*res2))) {
 		n_vec<-rbind(n_vec,data.frame(number=i, solution=equation9(i), sign=sign(equation9(i))))
 		}
-	plus.to.minus <- which(diff(n_vec$sign)<0)
-	minus.to.plus <- which(diff(n_vec$sign)>0)
-	solutions=c(mean(n_vec[plus.to.minus:plus.to.minus+1,"number"]),mean(n_vec[minus.to.plus:minus.to.plus+1,"number"]))
+	plustominus <- which(diff(n_vec$sign)<0)
+	minustoplus <- which(diff(n_vec$sign)>0)
+	solutions=c(mean(n_vec[plustominus:plustominus+1,"number"]),mean(n_vec[minustoplus:minustoplus+1,"number"]))
+	tau=(M-theta)/M
+	Mund=M*(1-((1-tau)/(1-exp((-1*(1-tau))/tau)))) # is the average effect size of undetected QTL, equation 10 in Otto & Jones 2000
 	result<-list()
-	result$theta<-theta; result$trueQTLnumber=n; result$lowerCI=solutions[1]; result$upperCI=solutions[2]
+	result$theta<-theta; result$Mundetected=Mund; result$trueQTLnumber=n; result$lowerCI=solutions[1]; result$upperCI=solutions[2]
 	return(result)
 	}
