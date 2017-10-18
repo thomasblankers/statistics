@@ -103,13 +103,12 @@ otto_jones_ci<-function(D= 0.8381, M= 0.0872,nd= 7, alpha= 0.05, amin= 0.0335, r
 	for( i in seq(from=1+1*10^(-1*res2), to=max.loci, by=1*10^(-1*res2))) {
 		n_vec<-rbind(n_vec,data.frame(number=i, solution=equation9(i), sign=sign(equation9(i))))
 		}
-	plus.to.minus <- which(diff(n_vec$sign)<0)
-	minus.to.plus <- which(diff(n_vec$sign)>0)
-	solutions=c(mean(n_vec[plus.to.minus:plus.to.minus+1,"number"]),mean(n_vec[minus.to.plus:minus.to.plus+1,"number"]))
+	plustominus <- which(diff(n_vec$sign)<0)
+	minustoplus <- which(diff(n_vec$sign)>0)
+	solutions=c(mean(n_vec[plustominus:plustominus+1,"number"]),mean(n_vec[minustoplus:minustoplus+1,"number"]))
 	tau=(M-theta)/M
 	Mund=M*(1-((1-tau)/(1-exp((-1*(1-tau))/tau)))) # is the effect size of undetected QTL
 	result<-list()
 	result$theta<-theta; result$Mundetected=Mund; result$trueQTLnumber=n; result$lowerCI=solutions[1]; result$upperCI=solutions[2]
 	return(result)
 	}
-
