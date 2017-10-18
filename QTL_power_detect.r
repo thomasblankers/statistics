@@ -1,4 +1,4 @@
-## these are functions to analyze the power to detect QTL and to estimate the true number of loci in QTL mapping studies using intercross data
+## these are functions to analyze the power to detect QTL and to estimate the true number of loci in QTL mapping studies using intercross data (all formulae) and backcross data (Otto & Jones formulae only)
 ## lynch_walsh_sample calculates the minimum F2 sample size needed to detect a QTL of a given effect size under different type 1 and type 2 errors (equation 15.37, Lynch & Wlash, 1998, Genetics and Analysis of Quantitative Traits)
 ## lynch_walsh_detect approximates the smallest effect size one can detect in a QTL experiment given the F2 sample size based on Lynch & Walsh, 1998
 ## otto_jones_detect approximates the smalles effect size one can detect (threshold theta) based on equation 11 in Otto & Jones, 2000, Detecting the undetected: estimating the total number of loci underlying a quantitative trait, Genetics 156.
