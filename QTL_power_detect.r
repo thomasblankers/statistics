@@ -99,7 +99,7 @@ otto_jones_ci<-function(D= 0.8381, M= 0.0872,nd= 7, alpha= 0.05, amin= 0.0335, r
 	n=otto_jones_trueQTLnumber(D=D,amin=amin,M=M,nd=nd, res=res)
 	X=qchisq(1-alpha, df=1)
 	equation9<-function(n){((-1)*nd) + (((M-theta)*n*nd)/D) - (nd*log(((M-theta)*n)/D)) - (X/2)}
-	n_vec<-data.frame(number=1, solution=equation9(1), sign=sign(equation9(i)))
+	n_vec<-data.frame(number=1, solution=equation9(1), sign=sign(equation9(1)))
 	for( i in seq(from=1+1*10^(-1*res2), to=max.loci, by=1*10^(-1*res2))) {
 		n_vec<-rbind(n_vec,data.frame(number=i, solution=equation9(i), sign=sign(equation9(i))))
 		}
